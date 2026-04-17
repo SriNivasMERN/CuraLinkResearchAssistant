@@ -2,7 +2,7 @@ import { runSearch } from "../services/search.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const searchResearch = asyncHandler(async (req, res) => {
-  const { query = "", structuredInput = {} } = req.body || {};
+  const { query = "", structuredInput = {}, conversationId = "" } = req.body || {};
 
   if (!query.trim() && !structuredInput.disease && !structuredInput.intentQuery) {
     const error = new Error("Provide a natural query or structured disease/intent input.");
@@ -10,7 +10,6 @@ export const searchResearch = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const result = await runSearch({ query, structuredInput });
+  const result = await runSearch({ query, structuredInput, conversationId });
   res.json(result);
 });
-

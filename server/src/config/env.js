@@ -8,5 +8,6 @@ export const env = {
     process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/curalink-research-assistant",
   clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
   nodeEnv: process.env.NODE_ENV || "development",
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434",
+  ollamaModel: process.env.OLLAMA_MODEL || "llama3.1:8b",
 };
-

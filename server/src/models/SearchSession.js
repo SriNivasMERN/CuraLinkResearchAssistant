@@ -19,6 +19,14 @@ const searchSessionSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    topPublicationIds: {
+      type: [String],
+      default: [],
+    },
+    topTrialIds: {
+      type: [String],
+      default: [],
+    },
     resultCounts: {
       publications: { type: Number, default: 0 },
       trials: { type: Number, default: 0 },
@@ -32,4 +40,3 @@ const searchSessionSchema = new mongoose.Schema(
 const SearchSession = mongoose.model("SearchSession", searchSessionSchema);
 
 export default SearchSession;
-

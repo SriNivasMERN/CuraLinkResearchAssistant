@@ -10,6 +10,7 @@ function PublicationsList({ items }) {
           <div className="result-meta">
             <span className="badge">{item.platform}</span>
             <span>{item.year || "Year unavailable"}</span>
+            <span>Score {item.relevanceScore ?? "n/a"}</span>
           </div>
           <h3>{item.title}</h3>
           <p>{item.summary || "Summary unavailable."}</p>
@@ -24,4 +25,3 @@ function PublicationsList({ items }) {
 }
 
 export default PublicationsList;
-

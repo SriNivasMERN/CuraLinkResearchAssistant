@@ -10,3 +10,12 @@ export async function searchResearch(payload) {
   return data;
 }
 
+export async function fetchConversations() {
+  const { data } = await apiClient.get("/conversations");
+  return data.conversations || [];
+}
+
+export async function fetchConversationMessages(conversationId) {
+  const { data } = await apiClient.get(`/conversations/${conversationId}/messages`);
+  return data;
+}
