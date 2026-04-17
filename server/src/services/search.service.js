@@ -6,7 +6,7 @@ import { expandResearchQueries } from "./queryExpansion.service.js";
 import { rankEvidence } from "./ranking.service.js";
 import { env } from "../config/env.js";
 import { generateStructuredAnswer } from "./reasoning/answer.service.js";
-import { getCacheValue, setCacheValue } from "./cache.service.js";
+import { getOrSetCacheValue } from "./cache.service.js";
 import {
   addConversationMessage,
   getOrCreateConversation,
@@ -55,17 +55,6 @@ function deriveCondition(query, structuredInput, conversation) {
   return normalizedQuery;
 }
 
-async function fetchWithCache(cacheKey, loader, ttlMs = 1000 * 60 * 10) {
-  const cachedValue = getCacheValue(cacheKey);
-
-  if (cachedValue) {
-    return cachedValue;
-  }
-
-  const loadedValue = await loader();
-  return setCacheValue(cacheKey, loadedValue, ttlMs);
-}
-
 function buildSearchCacheKey({ query, disease, intent, location }) {
   return [
     "search",
@@ -76,6 +65,10 @@ function buildSearchCacheKey({ query, disease, intent, location }) {
   ]
     .join(":")
     .toLowerCase();
+}
+
+function dedupeQueries(items) {
+  return Array.from(new Set(items.filter(Boolean).map((item) => item.trim()))).filter(Boolean);
 }
 
 export async function runSearch({ query, structuredInput, conversationId }) {
@@ -122,7 +115,7 @@ export async function runSearch({ query, structuredInput, conversationId }) {
     },
   });
 
-  const publicationQueries = expansion.expandedQueries.slice(0, 2);
+  const publicationQueries = dedupeQueries(expansion.expandedQueries).slice(0, 2);
   const trialQuery = expansion.expandedQueries.find((item) => item.toLowerCase().includes("clinical trials"))
     || effectiveQuery;
   const searchCacheKey = buildSearchCacheKey({
@@ -132,15 +125,15 @@ export async function runSearch({ query, structuredInput, conversationId }) {
     location: expansion.location,
   });
 
-  const computedResult = await fetchWithCache(
+  const computedResult = await getOrSetCacheValue(
     searchCacheKey,
     async () => {
       const sourceRequests = publicationQueries.flatMap((expandedQuery) => [
-        fetchWithCache(`openalex:${expandedQuery}`, () => searchOpenAlex(expandedQuery)),
-        fetchWithCache(`pubmed:${expandedQuery}`, () => searchPubMed(expandedQuery)),
+        getOrSetCacheValue(`openalex:${expandedQuery}`, () => searchOpenAlex(expandedQuery)),
+        getOrSetCacheValue(`pubmed:${expandedQuery}`, () => searchPubMed(expandedQuery)),
       ]);
       sourceRequests.push(
-        fetchWithCache(
+        getOrSetCacheValue(
           `clinicaltrials:${trialQuery}:${effectiveCondition}`,
           () => searchClinicalTrials(trialQuery, effectiveCondition),
           1000 * 60 * 5
@@ -200,50 +193,48 @@ export async function runSearch({ query, structuredInput, conversationId }) {
 
   const { ranking, answer, warnings } = computedResult;
 
-  await SearchSession.create({
-    conversationId: conversation._id,
-    originalQuery: effectiveQuery,
-    structuredInput: normalizedStructuredInput,
+  const responseContext = {
+    disease: effectiveCondition,
+    intent: expansion.effectiveIntent,
+    location: expansion.location,
     expandedQueries: expansion.expandedQueries,
-    topPublicationIds: ranking.topPublications.map((item) => item.id),
-    topTrialIds: ranking.topTrials.map((item) => item.id),
-    resultCounts: {
-      publications: ranking.rankedPublications.length,
-      trials: ranking.rankedTrials.length,
-    },
-  });
+  };
 
-  await addConversationMessage({
-    conversationId: conversation._id,
-    role: "assistant",
-    content: answer.conditionOverview,
-    metadata: {
-      answer,
-      context: {
-        disease: effectiveCondition,
-        intent: expansion.effectiveIntent,
-        location: expansion.location,
-        expandedQueries: expansion.expandedQueries,
-      },
-      warnings,
-      publications: ranking.topPublications,
-      trials: ranking.topTrials,
-      counts: {
+  await Promise.all([
+    SearchSession.create({
+      conversationId: conversation._id,
+      originalQuery: effectiveQuery,
+      structuredInput: normalizedStructuredInput,
+      expandedQueries: expansion.expandedQueries,
+      topPublicationIds: ranking.topPublications.map((item) => item.id),
+      topTrialIds: ranking.topTrials.map((item) => item.id),
+      resultCounts: {
         publications: ranking.rankedPublications.length,
         trials: ranking.rankedTrials.length,
       },
-    },
-  });
+    }),
+    addConversationMessage({
+      conversationId: conversation._id,
+      role: "assistant",
+      content: answer.conditionOverview,
+      metadata: {
+        answer,
+        context: responseContext,
+        warnings,
+        publications: ranking.topPublications,
+        trials: ranking.topTrials,
+        counts: {
+          publications: ranking.rankedPublications.length,
+          trials: ranking.rankedTrials.length,
+        },
+      },
+    }),
+  ]);
 
   return {
     conversationId: conversation._id,
     query: effectiveQuery,
-    context: {
-      disease: effectiveCondition,
-      intent: expansion.effectiveIntent,
-      location: expansion.location,
-      expandedQueries: expansion.expandedQueries,
-    },
+    context: responseContext,
     answer,
     publications: ranking.topPublications,
     trials: ranking.topTrials,
