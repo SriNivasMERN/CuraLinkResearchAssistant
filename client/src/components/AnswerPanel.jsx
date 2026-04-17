@@ -12,6 +12,26 @@ function renderList(items) {
   );
 }
 
+function renderSentenceBullets(text, emptyMessage) {
+  const points = text
+    ?.split(/(?<=[.!?])\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+
+  if (!points?.length) {
+    return <p className="muted-copy">{emptyMessage}</p>;
+  }
+
+  return (
+    <ul className="insight-list compact-list">
+      {points.map((point, index) => (
+        <li key={`${point}-${index}`}>{point}</li>
+      ))}
+    </ul>
+  );
+}
+
 function AnswerPanel({ answer, context, warnings }) {
   if (!answer) {
     return (
@@ -37,14 +57,29 @@ function AnswerPanel({ answer, context, warnings }) {
         <span className="badge">{answer.generationMode === "ollama" ? "Ollama" : "Grounded fallback"}</span>
       </div>
 
+      <div className="answer-hero-strip">
+        <div className="answer-hero-item">
+          <span className="answer-hero-label">Context</span>
+          <strong>{context?.disease || "General medical research"}</strong>
+        </div>
+        <div className="answer-hero-item">
+          <span className="answer-hero-label">Focus</span>
+          <strong>{context?.intent || "Research exploration"}</strong>
+        </div>
+        <div className="answer-hero-item">
+          <span className="answer-hero-label">Evidence Mode</span>
+          <strong>{answer.generationMode === "ollama" ? "Local model reasoning" : "Grounded fallback"}</strong>
+        </div>
+      </div>
+
       <div className="answer-section">
         <h4>Condition Overview</h4>
-        <p>{answer.conditionOverview}</p>
+        {renderSentenceBullets(answer.conditionOverview, "No condition overview was generated.")}
       </div>
 
       <div className="answer-section">
         <h4>Personalized Context</h4>
-        <p>{answer.personalizedContext}</p>
+        {renderSentenceBullets(answer.personalizedContext, "No personalized context was generated.")}
       </div>
 
       <div className="answer-section">
@@ -69,7 +104,7 @@ function AnswerPanel({ answer, context, warnings }) {
 
       <div className="answer-section">
         <h4>Limitations</h4>
-        <p>{answer.limitations}</p>
+        {renderSentenceBullets(answer.limitations, "No limitations were generated.")}
       </div>
 
       {warnings?.length ? (

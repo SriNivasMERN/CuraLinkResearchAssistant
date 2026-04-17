@@ -1,10 +1,14 @@
 function AppShell({ children }) {
   return (
     <div className="app-shell">
+      <div className="scroll-beam" aria-hidden="true" />
       <div className="ambient-layer" aria-hidden="true">
         <span className="ambient-orb ambient-orb-one" />
         <span className="ambient-orb ambient-orb-two" />
+        <span className="ambient-orb ambient-orb-three" />
         <span className="ambient-grid" />
+        <span className="ambient-wave ambient-wave-one" />
+        <span className="ambient-wave ambient-wave-two" />
       </div>
       <header className="topbar">
         <div className="topbar-inner">
