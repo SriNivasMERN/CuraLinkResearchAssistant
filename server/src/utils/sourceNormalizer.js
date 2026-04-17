@@ -1,14 +1,13 @@
 export function normalizeOpenAlexWork(work) {
   const authors =
     work.authorships?.map((authorship) => authorship.author?.display_name).filter(Boolean) || [];
+  const abstract = buildOpenAlexAbstract(work.abstract_inverted_index);
 
   return {
     id: work.id || `openalex-${work.ids?.openalex || Math.random().toString(36).slice(2)}`,
     type: "publication",
     title: work.title || "Untitled publication",
-    summary: work.abstract_inverted_index
-      ? Object.keys(work.abstract_inverted_index).join(" ").slice(0, 500)
-      : "",
+    summary: abstract.slice(0, 1200),
     authors,
     year: work.publication_year || null,
     platform: "OpenAlex",
@@ -17,6 +16,22 @@ export function normalizeOpenAlexWork(work) {
       citedByCount: work.cited_by_count || 0,
     },
   };
+}
+
+function buildOpenAlexAbstract(abstractInvertedIndex) {
+  if (!abstractInvertedIndex) {
+    return "";
+  }
+
+  const positionedTokens = [];
+
+  for (const [word, positions] of Object.entries(abstractInvertedIndex)) {
+    for (const position of positions) {
+      positionedTokens[position] = word;
+    }
+  }
+
+  return positionedTokens.filter(Boolean).join(" ");
 }
 
 export function normalizePubMedRecord(record) {
@@ -82,4 +97,3 @@ export function normalizeClinicalTrial(study) {
     },
   };
 }
-

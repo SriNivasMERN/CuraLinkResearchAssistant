@@ -12,6 +12,36 @@ function buildQuery(query, structuredInput) {
   return [structuredInput.disease, structuredInput.intentQuery].filter(Boolean).join(" ").trim();
 }
 
+function deriveCondition(query, structuredInput) {
+  if (structuredInput?.disease?.trim()) {
+    return structuredInput.disease.trim();
+  }
+
+  const normalizedQuery = (query || "").trim();
+
+  if (!normalizedQuery) {
+    return "";
+  }
+
+  const explicitForMatch = normalizedQuery.match(
+    /\b(?:for|in|with|about)\s+([a-z0-9' -]+)$/i
+  );
+
+  if (explicitForMatch?.[1]) {
+    return explicitForMatch[1].trim();
+  }
+
+  const medicalKeywordMatch = normalizedQuery.match(
+    /([a-z0-9' -]+(?:cancer|disease|diabetes|syndrome|tumor|tumour|carcinoma|parkinson's|alzheimer's))/i
+  );
+
+  if (medicalKeywordMatch?.[1]) {
+    return medicalKeywordMatch[1].trim();
+  }
+
+  return normalizedQuery;
+}
+
 export async function runSearch({ query, structuredInput }) {
   const normalizedStructuredInput = {
     patientName: structuredInput?.patientName || "",
@@ -21,17 +51,18 @@ export async function runSearch({ query, structuredInput }) {
   };
 
   const effectiveQuery = buildQuery(query, normalizedStructuredInput);
+  const effectiveCondition = deriveCondition(effectiveQuery, normalizedStructuredInput);
 
   const conversation = await Conversation.create({
     title: effectiveQuery || "New research conversation",
-    activeDiseaseContext: normalizedStructuredInput.disease,
+    activeDiseaseContext: effectiveCondition,
     activeLocationContext: normalizedStructuredInput.location,
   });
 
   const [openAlexResults, pubMedResults, clinicalTrialResults] = await Promise.allSettled([
     searchOpenAlex(effectiveQuery),
     searchPubMed(effectiveQuery),
-    searchClinicalTrials(effectiveQuery, normalizedStructuredInput.disease),
+    searchClinicalTrials(effectiveQuery, effectiveCondition),
   ]);
 
   const publications = [];
@@ -74,4 +105,3 @@ export async function runSearch({ query, structuredInput }) {
       .map((result) => result.reason?.message || "A source request failed"),
   };
 }
-
