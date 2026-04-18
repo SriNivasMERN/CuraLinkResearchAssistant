@@ -1137,23 +1137,6 @@ input {
   font-size: 0.98rem;
 }
 
-.answer-step {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 42px;
-  height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.18), rgba(115, 86, 216, 0.18));
-  border: 1px solid rgba(15, 118, 110, 0.16);
-  color: #19536d;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  margin-bottom: 10px;
-}
-
 .insight-list,
 .result-bullet-list {
   margin: 0;
@@ -1315,6 +1298,19 @@ input {
   align-items: center;
   color: var(--text-soft);
   font-size: 0.85rem;
+}
+
+.result-index-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.16), rgba(115, 86, 216, 0.14));
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  color: #16596d;
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .result-card h3,

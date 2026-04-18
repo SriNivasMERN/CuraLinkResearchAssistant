@@ -274,35 +274,35 @@ function HomePage() {
                       className={`results-tab ${activeResultTab === "all" ? "results-tab-active" : ""}`}
                       onClick={() => setActiveResultTab("all")}
                     >
-                      All
+                      All ({counts.publications + counts.trials})
                     </button>
                     <button
                       type="button"
                       className={`results-tab ${activeResultTab === "publications" ? "results-tab-active" : ""}`}
                       onClick={() => setActiveResultTab("publications")}
                     >
-                      Studies
+                      Studies ({counts.publications})
                     </button>
                     <button
                       type="button"
                       className={`results-tab ${activeResultTab === "trials" ? "results-tab-active" : ""}`}
                       onClick={() => setActiveResultTab("trials")}
                     >
-                      Trials
+                      Trials ({counts.trials})
                     </button>
                     <button
                       type="button"
                       className={`results-tab ${activeResultTab === "sources" ? "results-tab-active" : ""}`}
                       onClick={() => setActiveResultTab("sources")}
                     >
-                      Sources
+                      Sources ({sourceAttribution.length})
                     </button>
                   </div>
 
                   <div className="results-grid">
                     {activeResultTab === "all" ? (
                       <SectionCard
-                        title="Top Evidence"
+                        title={`All (${counts.publications + counts.trials})`}
                         className="evidence-card evidence-card-all"
                       >
                         <AllEvidenceList publications={results.publications} trials={results.trials} />
@@ -310,7 +310,7 @@ function HomePage() {
                     ) : null}
                     {activeResultTab === "publications" ? (
                       <SectionCard
-                        title="Studies"
+                        title={`Studies (${counts.publications})`}
                         className="evidence-card evidence-card-publications"
                       >
                         <PublicationsList items={results.publications} />
@@ -318,7 +318,7 @@ function HomePage() {
                     ) : null}
                     {activeResultTab === "trials" ? (
                       <SectionCard
-                        title="Clinical Trials"
+                        title={`Clinical Trials (${counts.trials})`}
                         className="evidence-card evidence-card-trials"
                       >
                         <ClinicalTrialsList items={results.trials} />
@@ -326,7 +326,7 @@ function HomePage() {
                     ) : null}
                     {activeResultTab === "sources" ? (
                       <SectionCard
-                        title="Sources"
+                        title={`Sources (${sourceAttribution.length})`}
                         className="evidence-card evidence-card-sources"
                       >
                         <SourceAttributionList sources={sourceAttribution} />

@@ -21,10 +21,11 @@ function ClinicalTrialsList({ items }) {
 
   return (
     <div className="card-list">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <article className="result-card trial-card" key={item.id}>
           <div className="result-accent trial-accent" />
           <div className="result-meta">
+            <span className="result-index-badge">Trial {index + 1}</span>
             <span className="badge">{item.platform}</span>
             <span>{item.metadata?.status || "Status unavailable"}</span>
             <span>Score {item.relevanceScore ?? "n/a"}</span>

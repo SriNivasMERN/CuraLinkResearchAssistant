@@ -33,10 +33,11 @@ function PublicationsList({ items }) {
 
   return (
     <div className="card-list">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <article className="result-card publication-card" key={item.id}>
           <div className="result-accent publication-accent" />
           <div className="result-meta">
+            <span className="result-index-badge">Study {index + 1}</span>
             <span className="badge">{item.platform}</span>
             <span>{item.year || "Year unavailable"}</span>
             <span>Score {item.relevanceScore ?? "n/a"}</span>

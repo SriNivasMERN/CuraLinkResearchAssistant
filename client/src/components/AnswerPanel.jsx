@@ -72,32 +72,27 @@ function AnswerPanel({ answer, context, warnings }) {
 
       <div className="answer-grid">
         <div className="answer-section answer-section-card">
-          <span className="answer-step">01</span>
           <h4>Big Picture</h4>
           {renderSentenceBullets(answer.conditionOverview, "No short overview is available yet.")}
         </div>
 
         <div className="answer-section answer-section-card">
-          <span className="answer-step">02</span>
           <h4>Why This Fits Your Question</h4>
           {renderSentenceBullets(answer.personalizedContext, "No question-specific explanation is available yet.")}
         </div>
 
         <div className="answer-section answer-section-card">
-          <span className="answer-step">03</span>
           <h4>What The Studies Suggest</h4>
           {renderList(answer.researchInsights)}
         </div>
 
         <div className="answer-section answer-section-card">
-          <span className="answer-step">04</span>
           <h4>What The Trials Show</h4>
           {renderList(answer.clinicalTrials)}
         </div>
       </div>
 
       <div className="answer-section answer-section-card">
-        <span className="answer-step">05</span>
         <h4>What To Be Careful About</h4>
         {renderSentenceBullets(answer.limitations, "No caution notes are available yet.")}
       </div>

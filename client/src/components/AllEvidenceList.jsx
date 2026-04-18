@@ -37,13 +37,14 @@ function AllEvidenceList({ publications, trials }) {
 
   return (
     <div className="card-list">
-      {mergedItems.map((item) => {
+      {mergedItems.map((item, index) => {
         const isTrial = item.type === "trial";
 
         return (
           <article className={`result-card ${isTrial ? "trial-card" : "publication-card"}`} key={item.id}>
             <div className={`result-accent ${isTrial ? "trial-accent" : "publication-accent"}`} />
             <div className="result-meta">
+              <span className="result-index-badge">{isTrial ? `Trial ${index + 1}` : `Study ${index + 1}`}</span>
               <span className="badge">{isTrial ? "Clinical trial" : "Publication"}</span>
               <span>{item.platform}</span>
               <span>{isTrial ? item.metadata?.status || "Status unavailable" : item.year || "Year unavailable"}</span>
