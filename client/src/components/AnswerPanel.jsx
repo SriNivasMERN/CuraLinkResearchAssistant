@@ -1,12 +1,14 @@
 function renderList(items) {
-  if (!items?.length) {
+  const compactItems = items?.slice(0, 2) || [];
+
+  if (!compactItems.length) {
     return <p className="muted-copy">No evidence-backed points were generated for this section.</p>;
   }
 
   return (
     <ul className="insight-list">
-      {items.map((item, index) => (
-        <li key={`${item}-${index}`}>{item}</li>
+      {compactItems.map((item, index) => (
+        <li key={`${item}-${index}`}>{item.length > 140 ? `${item.slice(0, 137)}...` : item}</li>
       ))}
     </ul>
   );
@@ -17,7 +19,7 @@ function renderSentenceBullets(text, emptyMessage) {
     ?.split(/(?<=[.!?])\s+/)
     .map((item) => item.trim())
     .filter(Boolean)
-    .slice(0, 4);
+    .slice(0, 1);
 
   if (!points?.length) {
     return <p className="muted-copy">{emptyMessage}</p>;
@@ -49,7 +51,7 @@ function AnswerPanel({ answer, context, warnings }) {
     <div className="answer-panel">
       <div className="answer-header">
         <div>
-          <p className="eyebrow">Structured Answer</p>
+          <p className="eyebrow">AI research synthesis</p>
           <h3>
             {context?.disease ? `${context.disease} research summary` : "Medical research summary"}
           </h3>
@@ -57,66 +59,55 @@ function AnswerPanel({ answer, context, warnings }) {
         <span className="badge">{answer.generationMode === "ollama" ? "Ollama" : "Grounded fallback"}</span>
       </div>
 
-      <div className="answer-hero-strip">
-        <div className="answer-hero-item">
-          <span className="answer-hero-label">Context</span>
-          <strong>{context?.disease || "General medical research"}</strong>
+      <div className="answer-meta-strip">
+        <span className="summary-pill">
+          <span className="summary-label">Context</span>
+          {context?.disease || "General medical research"}
+        </span>
+        <span className="summary-pill">
+          <span className="summary-label">Intent</span>
+          {context?.intent || "Research exploration"}
+        </span>
+      </div>
+
+      <div className="answer-grid">
+        <div className="answer-section answer-section-card">
+          <h4>Headline</h4>
+          {renderSentenceBullets(answer.conditionOverview, "No condition overview was generated.")}
         </div>
-        <div className="answer-hero-item">
-          <span className="answer-hero-label">Focus</span>
-          <strong>{context?.intent || "Research exploration"}</strong>
+
+        <div className="answer-section answer-section-card">
+          <h4>Context fit</h4>
+          {renderSentenceBullets(answer.personalizedContext, "No personalized context was generated.")}
         </div>
-        <div className="answer-hero-item">
-          <span className="answer-hero-label">Evidence Mode</span>
-          <strong>{answer.generationMode === "ollama" ? "Local model reasoning" : "Grounded fallback"}</strong>
+
+        <div className="answer-section answer-section-card">
+          <h4>Research signal</h4>
+          {renderList(answer.researchInsights)}
+        </div>
+
+        <div className="answer-section answer-section-card">
+          <h4>Trial signal</h4>
+          {renderList(answer.clinicalTrials)}
         </div>
       </div>
 
-      <div className="answer-section">
-        <h4>Condition Overview</h4>
-        {renderSentenceBullets(answer.conditionOverview, "No condition overview was generated.")}
-      </div>
-
-      <div className="answer-section">
-        <h4>Personalized Context</h4>
-        {renderSentenceBullets(answer.personalizedContext, "No personalized context was generated.")}
-      </div>
-
-      <div className="answer-section">
-        <h4>Research Insights</h4>
-        {renderList(answer.researchInsights)}
-      </div>
-
-      <div className="answer-section">
-        <h4>Clinical Trials</h4>
-        {renderList(answer.clinicalTrials)}
-      </div>
-
-      {answer.generationError ? (
-        <div className="warning-card">
-          <strong>Reasoning fallback active</strong>
-          <p className="muted-copy">
-            The structured answer is using the grounded fallback path because the local model endpoint
-            was not available during this request.
-          </p>
-        </div>
-      ) : null}
-
-      <div className="answer-section">
-        <h4>Limitations</h4>
+      <div className="answer-section answer-section-card">
+        <h4>Risk check</h4>
         {renderSentenceBullets(answer.limitations, "No limitations were generated.")}
       </div>
 
-      {warnings?.length ? (
-        <div className="warning-card">
-          <strong>Source warnings</strong>
-          <ul className="warning-list">
-            {warnings.map((warning, index) => (
-              <li key={`${warning}-${index}`}>{warning}</li>
-            ))}
-          </ul>
+      {(answer.generationError || warnings?.length) ? (
+        <div className="answer-footer-note">
+          {answer.generationError ? (
+            <span className="muted-copy">Local model unavailable, grounded fallback used for this answer.</span>
+          ) : null}
+          {warnings?.length ? (
+            <span className="muted-copy">{warnings.length} source warning(s) were detected during retrieval.</span>
+          ) : null}
         </div>
       ) : null}
+
     </div>
   );
 }
