@@ -1,15 +1,13 @@
 function SearchComposer({ query, onQueryChange, onSearch }) {
   return (
     <div className="search-composer">
-      <label className="field-label" htmlFor="research-query">
-        Natural Query
-      </label>
       <div className="search-row">
         <input
           id="research-query"
-          className="text-input"
+          className="text-input search-input-prominent"
           type="text"
-          placeholder="Example: Latest treatment for lung cancer"
+          autoFocus
+          placeholder="Ask about a disease, treatment, supplement, or trial"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
         />
@@ -22,4 +20,3 @@ function SearchComposer({ query, onQueryChange, onSearch }) {
 }
 
 export default SearchComposer;
-

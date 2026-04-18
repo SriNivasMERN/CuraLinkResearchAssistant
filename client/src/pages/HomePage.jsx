@@ -146,14 +146,25 @@ function HomePage() {
       <div className="workspace-main">
         {isLoading ? <LoadingState compact floating /> : null}
         <SectionCard
-          title="Medical Research Workspace"
-          subtitle="Search evidence, compare publications and trials, and keep the research thread moving without losing context."
+          title="CuraLink - Your Personal Medical AI Assistant"
+          subtitle="Ask a health question in plain language. CuraLink checks medical studies and clinical trials, then gives you a clear summary with sources."
           className="query-card query-card-expanded"
         >
           <div className="command-deck">
             <div className="command-story">
               <div className="query-card-intro">
-                <p className="eyebrow">CuraLink</p>
+                <div className="brand-lockup">
+                  <div className="medibot-mark" aria-hidden="true">
+                    <span className="medibot-head" />
+                    <span className="medibot-antenna" />
+                    <span className="medibot-eye medibot-eye-left" />
+                    <span className="medibot-eye medibot-eye-right" />
+                    <span className="medibot-stethoscope" />
+                    <span className="medibot-stethoscope-dot" />
+                    <span className="medibot-capsule" />
+                  </div>
+                  <p className="eyebrow">CuraLink</p>
+                </div>
                 <div className="query-quick-points">
                   <span className="quick-pill">Publications</span>
                   <span className="quick-pill">Trials</span>
@@ -161,22 +172,22 @@ function HomePage() {
                 </div>
               </div>
               <div className="command-copy">
-                <h3>One workspace for live medical research thinking!!!</h3>
+                <h3>Ask A Health Question. Get A Clear Research Answer.</h3>
                 <p>
-                  Ask a question, scan ranked evidence, and keep follow-up context moving without resetting the thread.
+                  Type what you want to know. The app finds useful studies and trials, then shows a simple answer you can read quickly.
                 </p>
               </div>
             </div>
             <div className="command-metrics">
               <div className="command-metric-card">
-                <span className="command-metric-label">Research mode</span>
-                <strong>Evidence-first</strong>
-                <p>Publications, trials, and source-backed summaries in one flow.</p>
+                <span className="command-metric-label">What It Does</span>
+                <strong>Checks Real Medical Sources</strong>
+                <p>It pulls studies, clinical trials, and a short answer into one easy view.</p>
               </div>
               <div className="command-metric-card">
-                <span className="command-metric-label">Best for</span>
-                <strong>Treatment paths</strong>
-                <p>Compare therapies, supplements, and trial options without leaving context.</p>
+                <span className="command-metric-label">What You Get</span>
+                <strong>Simple Next-Step Reading</strong>
+                <p>See the answer first, then open the studies and trials if you want more detail.</p>
               </div>
             </div>
           </div>
@@ -184,10 +195,10 @@ function HomePage() {
           <div className="command-input-shell">
             <div className="command-input-header">
               <div>
-                <p className="eyebrow">Research Query</p>
-                <h3>Launch a new search lane</h3>
+                <p className="eyebrow">Your Question</p>
+                <h3>Start A New Search</h3>
               </div>
-              <span className="command-status-pill">Live workspace</span>
+              <span className="command-status-pill">Ready</span>
             </div>
             <SearchComposer query={query} onQueryChange={setQuery} onSearch={handleSearch} />
             <StructuredQueryForm value={structuredInput} onChange={setStructuredInput} />
@@ -211,15 +222,15 @@ function HomePage() {
                     {context?.disease || "General research"}
                   </span>
                   <span className="summary-pill">
-                    <span className="summary-label">Pipeline</span>
+                    <span className="summary-label">Found</span>
                     {retrievalSummary.retrieved?.total || 0}
                   </span>
                   <span className="summary-pill">
-                    <span className="summary-label">Live now</span>
+                    <span className="summary-label">Showing</span>
                     {totalShown}
                   </span>
                   <span className="summary-pill">
-                    <span className="summary-label">Stack</span>
+                    <span className="summary-label">Sources</span>
                     {summarySourceLabel}
                   </span>
                 </div>
@@ -228,7 +239,7 @@ function HomePage() {
               {answer ? (
                 <SectionCard
                   title="Research Brief"
-                  subtitle="Fast read of the strongest signals pulled from publications and clinical trials."
+                  subtitle="Read the short answer first. The studies, trials, and sources are right below."
                   className="answer-shell compact-answer-shell"
                 >
                   <AnswerPanel
@@ -244,12 +255,12 @@ function HomePage() {
                   <div className="results-shell-header">
                     <div>
                       <p className="eyebrow">Evidence</p>
-                      <h2>Evidence board</h2>
-                      <p className="results-shell-copy">Switch between the mixed feed, publications, trials, and direct source support.</p>
+                      <h2>Evidence Board</h2>
+                      <p className="results-shell-copy">See all results together, only studies, only trials, or the sources behind the answer.</p>
                     </div>
                     <div className="results-shell-stats">
                       <span className="result-tag">
-                        {results.publications.length}/{counts.publications} publication cards
+                        {results.publications.length}/{counts.publications} study cards
                       </span>
                       <span className="result-tag">
                         {results.trials.length}/{counts.trials} trial cards
@@ -270,7 +281,7 @@ function HomePage() {
                       className={`results-tab ${activeResultTab === "publications" ? "results-tab-active" : ""}`}
                       onClick={() => setActiveResultTab("publications")}
                     >
-                      Publications
+                      Studies
                     </button>
                     <button
                       type="button"
@@ -299,7 +310,7 @@ function HomePage() {
                     ) : null}
                     {activeResultTab === "publications" ? (
                       <SectionCard
-                        title="Publications"
+                        title="Studies"
                         className="evidence-card evidence-card-publications"
                       >
                         <PublicationsList items={results.publications} />

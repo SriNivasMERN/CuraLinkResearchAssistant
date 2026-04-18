@@ -38,10 +38,10 @@ function AnswerPanel({ answer, context, warnings }) {
   if (!answer) {
     return (
       <div className="state-card">
-        <p className="eyebrow">Structured Answer</p>
-        <h3>Answer generation will appear here</h3>
+        <p className="eyebrow">Quick Summary</p>
+        <h3>Your easy summary will appear here</h3>
         <p className="muted-copy">
-          Day 2 adds grounded answer generation based on ranked publications and clinical trials.
+          After you search, this area will show the main answer in simple language.
         </p>
       </div>
     );
@@ -51,59 +51,64 @@ function AnswerPanel({ answer, context, warnings }) {
     <div className="answer-panel">
       <div className="answer-header">
         <div>
-          <p className="eyebrow">AI research synthesis</p>
+          <p className="eyebrow">AI Summary</p>
           <h3>
-            {context?.disease ? `${context.disease} research summary` : "Medical research summary"}
+            {context?.disease ? `${context.disease} - quick summary` : "Quick medical research summary"}
           </h3>
         </div>
-        <span className="badge">{answer.generationMode === "ollama" ? "Ollama" : "Grounded fallback"}</span>
+        <span className="badge">{answer.generationMode === "ollama" ? "AI model" : "Backup mode"}</span>
       </div>
 
       <div className="answer-meta-strip">
         <span className="summary-pill">
-          <span className="summary-label">Context</span>
-          {context?.disease || "General medical research"}
+          <span className="summary-label">Topic</span>
+          {context?.disease || "General health question"}
         </span>
         <span className="summary-pill">
-          <span className="summary-label">Intent</span>
-          {context?.intent || "Research exploration"}
+          <span className="summary-label">Focus</span>
+          {context?.intent || "General information"}
         </span>
       </div>
 
       <div className="answer-grid">
         <div className="answer-section answer-section-card">
-          <h4>Headline</h4>
-          {renderSentenceBullets(answer.conditionOverview, "No condition overview was generated.")}
+          <span className="answer-step">01</span>
+          <h4>Big Picture</h4>
+          {renderSentenceBullets(answer.conditionOverview, "No short overview is available yet.")}
         </div>
 
         <div className="answer-section answer-section-card">
-          <h4>Context fit</h4>
-          {renderSentenceBullets(answer.personalizedContext, "No personalized context was generated.")}
+          <span className="answer-step">02</span>
+          <h4>Why This Fits Your Question</h4>
+          {renderSentenceBullets(answer.personalizedContext, "No question-specific explanation is available yet.")}
         </div>
 
         <div className="answer-section answer-section-card">
-          <h4>Research signal</h4>
+          <span className="answer-step">03</span>
+          <h4>What The Studies Suggest</h4>
           {renderList(answer.researchInsights)}
         </div>
 
         <div className="answer-section answer-section-card">
-          <h4>Trial signal</h4>
+          <span className="answer-step">04</span>
+          <h4>What The Trials Show</h4>
           {renderList(answer.clinicalTrials)}
         </div>
       </div>
 
       <div className="answer-section answer-section-card">
-        <h4>Risk check</h4>
-        {renderSentenceBullets(answer.limitations, "No limitations were generated.")}
+        <span className="answer-step">05</span>
+        <h4>What To Be Careful About</h4>
+        {renderSentenceBullets(answer.limitations, "No caution notes are available yet.")}
       </div>
 
       {(answer.generationError || warnings?.length) ? (
         <div className="answer-footer-note">
           {answer.generationError ? (
-            <span className="muted-copy">Local model unavailable, grounded fallback used for this answer.</span>
+            <span className="muted-copy">The main AI model was unavailable, so the app used a backup summary.</span>
           ) : null}
           {warnings?.length ? (
-            <span className="muted-copy">{warnings.length} source warning(s) were detected during retrieval.</span>
+            <span className="muted-copy">{warnings.length} source warning(s) appeared while gathering results.</span>
           ) : null}
         </div>
       ) : null}

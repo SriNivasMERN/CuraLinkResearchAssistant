@@ -1,15 +1,22 @@
-function ConversationSidebar({ conversations, activeConversationId, onSelectConversation, isLoading }) {
+function ConversationSidebar({
+  conversations,
+  activeConversationId,
+  onSelectConversation,
+  isLoading,
+  className = "",
+}) {
   return (
-    <aside className="conversation-sidebar">
+    <aside className={`conversation-sidebar ${className}`.trim()}>
       <div className="sidebar-header">
-        <p className="eyebrow">Conversation Context</p>
+        <p className="eyebrow">History</p>
         <h3>Recent Searches</h3>
+        <p className="sidebar-copy">Open an earlier search again.</p>
       </div>
 
       {isLoading ? (
-        <p className="muted-copy">Refreshing conversation history...</p>
+        <p className="muted-copy">Loading past searches...</p>
       ) : !conversations.length ? (
-        <p className="muted-copy">No saved conversations yet.</p>
+        <p className="muted-copy">Your earlier searches will appear here.</p>
       ) : (
         <div className="conversation-list">
           {conversations.map((conversation) => (
@@ -23,7 +30,7 @@ function ConversationSidebar({ conversations, activeConversationId, onSelectConv
             >
               <span className="conversation-title">{conversation.title}</span>
               <span className="conversation-meta">
-                {conversation.activeDiseaseContext || "General research context"}
+                {conversation.activeDiseaseContext || "General health question"}
               </span>
               <span className="conversation-date">
                 {new Date(conversation.updatedAt).toLocaleString()}

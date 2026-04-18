@@ -10,7 +10,7 @@ function LoadingState({ compact = false, floating = false }) {
         <div className="loading-ring loading-ring-two" />
         <div className="loading-orbit loading-orbit-one" />
         <div className="loading-orbit loading-orbit-two" />
-        <div className="loading-core">AI</div>
+        <div className="loading-core">CL</div>
       </div>
       <div className="loading-copy">
         <p className="eyebrow">Research In Progress</p>

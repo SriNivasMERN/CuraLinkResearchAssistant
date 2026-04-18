@@ -71,6 +71,89 @@ function dedupeQueries(items) {
   return Array.from(new Set(items.filter(Boolean).map((item) => item.trim()))).filter(Boolean);
 }
 
+function buildSupportingSnippet(item) {
+  const snippet = item.metadata?.supportingSnippet || item.summary || "";
+  return snippet.slice(0, 240).trim() || "No supporting snippet available.";
+}
+
+function buildSourceAttribution({ publications, trials }) {
+  return [...publications, ...trials].slice(0, 8).map((item) => ({
+    id: item.id,
+    type: item.type,
+    title: item.title,
+    authors: item.authors || [],
+    year: item.year,
+    platform: item.platform,
+    url: item.url,
+    snippet: buildSupportingSnippet(item),
+    metadata: item.type === "trial"
+      ? {
+          status: item.metadata?.status || "",
+          location: item.metadata?.location || "",
+          contact: item.metadata?.contact || "",
+          eligibilityCriteria: item.metadata?.eligibilityCriteria || "",
+          matchedSignals: item.matchedSignals || [],
+        }
+      : {
+          citedByCount: item.metadata?.citedByCount || 0,
+          matchedSignals: item.matchedSignals || [],
+        },
+  }));
+}
+
+function buildRetrievalSummary({
+  retrievedPublications,
+  retrievedTrials,
+  rankedPublications,
+  rankedTrials,
+  shownPublications,
+  shownTrials,
+  warnings,
+}) {
+  return {
+    retrieved: {
+      publications: retrievedPublications,
+      trials: retrievedTrials,
+      total: retrievedPublications + retrievedTrials,
+    },
+    ranked: {
+      publications: rankedPublications,
+      trials: rankedTrials,
+      total: rankedPublications + rankedTrials,
+    },
+    shown: {
+      publications: shownPublications,
+      trials: shownTrials,
+      total: shownPublications + shownTrials,
+    },
+    sourceMix: [
+      retrievedPublications ? "OpenAlex + PubMed" : null,
+      retrievedTrials ? "ClinicalTrials.gov" : null,
+    ].filter(Boolean),
+    warningCount: warnings.length,
+  };
+}
+
+function buildNoEvidenceAnswer({ query, disease, intent, warnings }) {
+  return {
+    conditionOverview: disease
+      ? `No strong medical evidence was found yet for ${disease}.`
+      : `No strong medical evidence was found yet for "${query}".`,
+    personalizedContext: intent
+      ? `The search focused on: ${intent}. Try a simpler wording or a more specific treatment or condition name.`
+      : "Try a simpler question or add the disease or treatment name for better results.",
+    researchInsights: [
+      "No clear study match was found in this search run.",
+      "Try using the disease name together with the treatment, supplement, or symptom you want to check.",
+    ],
+    clinicalTrials: ["No strong trial match was found in this search run."],
+    limitations: warnings.length
+      ? "Some data sources were slow or returned warnings, so this search may be incomplete."
+      : "This result may be incomplete if the question is too broad, too narrow, or uses uncommon wording.",
+    generationMode: "fallback",
+  };
+}
+
 export async function runSearch({ query, structuredInput, conversationId }) {
   const normalizedStructuredInput = {
     patientName: structuredInput?.patientName || "",
@@ -115,7 +198,7 @@ export async function runSearch({ query, structuredInput, conversationId }) {
     },
   });
 
-  const publicationQueries = dedupeQueries(expansion.expandedQueries).slice(0, 2);
+  const publicationQueries = dedupeQueries(expansion.expandedQueries).slice(0, env.publicationQueryCount);
   const trialQuery = expansion.expandedQueries.find((item) => item.toLowerCase().includes("clinical trials"))
     || effectiveQuery;
   const searchCacheKey = buildSearchCacheKey({
@@ -129,13 +212,19 @@ export async function runSearch({ query, structuredInput, conversationId }) {
     searchCacheKey,
     async () => {
       const sourceRequests = publicationQueries.flatMap((expandedQuery) => [
-        getOrSetCacheValue(`openalex:${expandedQuery}`, () => searchOpenAlex(expandedQuery)),
-        getOrSetCacheValue(`pubmed:${expandedQuery}`, () => searchPubMed(expandedQuery)),
+        getOrSetCacheValue(
+          `openalex:${expandedQuery}:${env.openAlexPerPage}`,
+          () => searchOpenAlex(expandedQuery, { perPage: env.openAlexPerPage })
+        ),
+        getOrSetCacheValue(
+          `pubmed:${expandedQuery}:${env.pubmedRetmax}`,
+          () => searchPubMed(expandedQuery, { retmax: env.pubmedRetmax })
+        ),
       ]);
       sourceRequests.push(
         getOrSetCacheValue(
-          `clinicaltrials:${trialQuery}:${effectiveCondition}`,
-          () => searchClinicalTrials(trialQuery, effectiveCondition),
+          `clinicaltrials:${trialQuery}:${effectiveCondition}:${env.trialsPageSize}`,
+          () => searchClinicalTrials(trialQuery, effectiveCondition, { pageSize: env.trialsPageSize }),
           1000 * 60 * 5
         )
       );
@@ -172,26 +261,50 @@ export async function runSearch({ query, structuredInput, conversationId }) {
         },
       });
 
-      const answer = await generateStructuredAnswer({
-        query: effectiveQuery,
-        disease: effectiveCondition,
-        intent: expansion.effectiveIntent,
+      const answer =
+        ranking.topPublications.length || ranking.topTrials.length
+          ? await generateStructuredAnswer({
+              query: effectiveQuery,
+              disease: effectiveCondition,
+              intent: expansion.effectiveIntent,
+              publications: ranking.topPublications,
+              trials: ranking.topTrials,
+              ollamaBaseUrl: env.ollamaBaseUrl,
+              ollamaModel: env.ollamaModel,
+            })
+          : buildNoEvidenceAnswer({
+              query: effectiveQuery,
+              disease: effectiveCondition,
+              intent: expansion.effectiveIntent,
+              warnings: uniqueWarnings,
+            });
+      const sourceAttribution = buildSourceAttribution({
         publications: ranking.topPublications,
         trials: ranking.topTrials,
-        ollamaBaseUrl: env.ollamaBaseUrl,
-        ollamaModel: env.ollamaModel,
+      });
+
+      const retrievalSummary = buildRetrievalSummary({
+        retrievedPublications: publications.length,
+        retrievedTrials: trials.length,
+        rankedPublications: ranking.rankedPublications.length,
+        rankedTrials: ranking.rankedTrials.length,
+        shownPublications: ranking.topPublications.length,
+        shownTrials: ranking.topTrials.length,
+        warnings: uniqueWarnings,
       });
 
       return {
         ranking,
         answer,
+        sourceAttribution,
+        retrievalSummary,
         warnings: uniqueWarnings,
       };
     },
     1000 * 60 * 3
   );
 
-  const { ranking, answer, warnings } = computedResult;
+  const { ranking, answer, sourceAttribution, retrievalSummary, warnings } = computedResult;
 
   const responseContext = {
     disease: effectiveCondition,
@@ -217,15 +330,17 @@ export async function runSearch({ query, structuredInput, conversationId }) {
       conversationId: conversation._id,
       role: "assistant",
       content: answer.conditionOverview,
-      metadata: {
-        answer,
-        context: responseContext,
-        warnings,
-        publications: ranking.topPublications,
-        trials: ranking.topTrials,
-        counts: {
-          publications: ranking.rankedPublications.length,
-          trials: ranking.rankedTrials.length,
+        metadata: {
+          answer,
+          context: responseContext,
+          warnings,
+          publications: ranking.topPublications,
+          trials: ranking.topTrials,
+          sourceAttribution,
+          retrievalSummary,
+          counts: {
+            publications: ranking.rankedPublications.length,
+            trials: ranking.rankedTrials.length,
         },
       },
     }),
@@ -238,6 +353,8 @@ export async function runSearch({ query, structuredInput, conversationId }) {
     answer,
     publications: ranking.topPublications,
     trials: ranking.topTrials,
+    sourceAttribution,
+    retrievalSummary,
     publicationCandidates: ranking.rankedPublications,
     trialCandidates: ranking.rankedTrials,
     counts: {
