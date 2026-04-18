@@ -1,11 +1,17 @@
+import EvidenceSignals from "./EvidenceSignals";
+
 function summarizeText(text) {
   const points = text
     ?.split(/(?<=[.!?])\s+/)
     .map((item) => item.trim())
     .filter(Boolean)
-    .slice(0, 3);
+    .slice(0, 1);
 
   return points?.length ? points : ["Eligibility or trial summary unavailable."];
+}
+
+function shorten(text = "", limit = 105) {
+  return text.length > limit ? `${text.slice(0, limit - 3)}...` : text;
 }
 
 function ClinicalTrialsList({ items }) {
@@ -24,16 +30,24 @@ function ClinicalTrialsList({ items }) {
             <span>Score {item.relevanceScore ?? "n/a"}</span>
           </div>
           <h3>{item.title}</h3>
+          <div className="result-highlight-row">
+            <div className="result-highlight">
+              <span className="result-highlight-label">Location</span>
+              <strong>{item.metadata?.location || "Location unavailable"}</strong>
+            </div>
+            <div className="result-highlight">
+              <span className="result-highlight-label">Fit</span>
+              <strong>{(item.matchedSignals || []).slice(0, 1)[0] || "Relevance scored"}</strong>
+            </div>
+          </div>
           <ul className="result-bullet-list">
             {summarizeText(item.summary).map((point, index) => (
-              <li key={`${item.id}-summary-${index}`}>{point}</li>
+              <li key={`${item.id}-summary-${index}`}>{shorten(point)}</li>
             ))}
           </ul>
-          <p className="muted-copy">
-            Location: {item.metadata?.location || "Location unavailable"}
-          </p>
-          <p className="muted-copy">
-            Contact: {item.metadata?.contact || "Contact unavailable"}
+          <EvidenceSignals items={(item.matchedSignals || []).slice(0, 2)} />
+          <p className="result-support-note">
+            Eligibility: {shorten(item.metadata?.eligibilityCriteria || "Eligibility unavailable", 100)}
           </p>
           <div className="result-footer">
             <span className="result-tag">Trial evidence</span>

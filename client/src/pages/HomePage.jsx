@@ -144,6 +144,7 @@ function HomePage() {
   return (
     <AppShell>
       <div className="workspace-main">
+        {isLoading ? <LoadingState compact floating /> : null}
         <SectionCard
           title="Medical Research Workspace"
           subtitle="Search evidence, compare publications and trials, and keep the research thread moving without losing context."
@@ -160,7 +161,7 @@ function HomePage() {
                 </div>
               </div>
               <div className="command-copy">
-                <h3>One workspace for live medical research thinking.</h3>
+                <h3>One workspace for live medical research thinking!!!</h3>
                 <p>
                   Ask a question, scan ranked evidence, and keep follow-up context moving without resetting the thread.
                 </p>
@@ -195,7 +196,6 @@ function HomePage() {
         </SectionCard>
 
         {error ? <ErrorBanner message={error} /> : null}
-        {isLoading ? <LoadingState /> : null}
 
         {!isLoading && !error && !answer && counts.publications === 0 && counts.trials === 0 ? (
           <EmptyState />
@@ -228,6 +228,7 @@ function HomePage() {
               {answer ? (
                 <SectionCard
                   title="Research Brief"
+                  subtitle="Fast read of the strongest signals pulled from publications and clinical trials."
                   className="answer-shell compact-answer-shell"
                 >
                   <AnswerPanel

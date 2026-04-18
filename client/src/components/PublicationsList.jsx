@@ -1,11 +1,29 @@
+import EvidenceSignals from "./EvidenceSignals";
+
 function summarizeText(text) {
   const points = text
     ?.split(/(?<=[.!?])\s+/)
     .map((item) => item.trim())
     .filter(Boolean)
-    .slice(0, 3);
+    .slice(0, 1);
 
   return points?.length ? points : ["Summary unavailable."];
+}
+
+function formatAuthors(authors = []) {
+  if (!authors.length) {
+    return "Unknown";
+  }
+
+  if (authors.length <= 3) {
+    return authors.join(", ");
+  }
+
+  return `${authors.slice(0, 3).join(", ")} +${authors.length - 3} more`;
+}
+
+function shorten(text = "", limit = 110) {
+  return text.length > limit ? `${text.slice(0, limit - 3)}...` : text;
 }
 
 function PublicationsList({ items }) {
@@ -24,12 +42,25 @@ function PublicationsList({ items }) {
             <span>Score {item.relevanceScore ?? "n/a"}</span>
           </div>
           <h3>{item.title}</h3>
+          <div className="result-highlight-row">
+            <div className="result-highlight">
+              <span className="result-highlight-label">Authors</span>
+              <strong>{formatAuthors(item.authors)}</strong>
+            </div>
+            <div className="result-highlight">
+              <span className="result-highlight-label">Fit</span>
+              <strong>{(item.matchedSignals || []).slice(0, 1)[0] || "Relevance scored"}</strong>
+            </div>
+          </div>
           <ul className="result-bullet-list">
             {summarizeText(item.summary).map((point, index) => (
-              <li key={`${item.id}-summary-${index}`}>{point}</li>
+              <li key={`${item.id}-summary-${index}`}>{shorten(point)}</li>
             ))}
           </ul>
-          <p className="muted-copy">Authors: {item.authors?.length ? item.authors.join(", ") : "Unknown"}</p>
+          <EvidenceSignals items={(item.matchedSignals || []).slice(0, 2)} />
+          <p className="result-support-note">
+            Snippet: {shorten(item.metadata?.supportingSnippet || "No supporting snippet available", 100)}
+          </p>
           <div className="result-footer">
             <span className="result-tag">Publication evidence</span>
             <a href={item.url} rel="noreferrer" target="_blank">

@@ -1,7 +1,11 @@
-function LoadingState() {
+function LoadingState({ compact = false, floating = false }) {
   return (
-    <div className="loading-shell">
+    <div
+      className={`loading-shell ${compact ? "loading-shell-inline" : ""} ${floating ? "loading-shell-floating" : ""}`.trim()}
+    >
       <div className="loading-visual">
+        <div className="loading-glow loading-glow-one" />
+        <div className="loading-glow loading-glow-two" />
         <div className="loading-ring loading-ring-one" />
         <div className="loading-ring loading-ring-two" />
         <div className="loading-orbit loading-orbit-one" />
@@ -19,6 +23,10 @@ function LoadingState() {
           <span>Scan sources</span>
           <span>Rank findings</span>
           <span>Compose answer</span>
+        </div>
+        <div className="loading-track">
+          <span className="loading-track-line" />
+          <span className="loading-track-dot" />
         </div>
         <div className="loading-signal">
           <span />
