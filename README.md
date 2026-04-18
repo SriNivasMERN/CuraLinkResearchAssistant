@@ -1,5 +1,13 @@
 # CuraLink Research Assistant
 
+## Live Demo
+
+The live deployed application is available here:
+
+**[https://cura-link-research-assistant.vercel.app/](https://cura-link-research-assistant.vercel.app/)**
+
+CuraLink is a medical research assistant that helps users ask health questions in plain language, review studies and clinical trials, and get a clear source-backed summary in one place.
+
 CuraLink Research Assistant is a full-stack medical research assistant that helps users explore health topics through a structured, source-backed workflow. The application is designed to accept either natural language queries or structured medical context, retrieve relevant publications and clinical trials, and present the findings in a clean, research-oriented interface.
 
 ## App Overview
