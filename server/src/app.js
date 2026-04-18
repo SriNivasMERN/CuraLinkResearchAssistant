@@ -8,7 +8,14 @@ const app = express();
 
 app.use(
   cors({
-    origin: env.clientOrigin,
+    origin(origin, callback) {
+      if (!origin || env.clientOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("This app is not allowed to call the API from this origin."));
+    },
   })
 );
 app.use(express.json());
@@ -18,4 +25,3 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 export default app;
-

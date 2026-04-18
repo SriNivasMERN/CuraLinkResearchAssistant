@@ -112,3 +112,57 @@ The current codebase includes:
 - MongoDB configuration
 - normalized retrieval integration layer
 - initial end-to-end search flow shell
+
+## Deployment Readiness
+
+The app is set up so the frontend and backend can be deployed separately with environment variables instead of local-only URLs.
+
+### Recommended Simple Setup
+
+- `Frontend`: Vercel
+- `Backend`: Render
+- `Database`: MongoDB Atlas
+
+### Backend Environment Variables
+
+Set these on the backend host:
+
+- `NODE_ENV=production`
+- `PORT=5000`
+- `MONGODB_URI=<your hosted MongoDB Atlas connection string>`
+- `CLIENT_ORIGIN=<your deployed frontend URL>`
+
+Optional backend variables:
+
+- `CLIENT_ORIGINS=<comma-separated extra frontend URLs if needed>`
+- `OLLAMA_BASE_URL=<only if you are hosting Ollama separately>`
+- `OLLAMA_MODEL=<only if Ollama is available>`
+- `OPENALEX_PER_PAGE=60`
+- `PUBMED_RETMAX=60`
+- `CLINICAL_TRIALS_PAGE_SIZE=40`
+- `PUBLICATION_QUERY_COUNT=3`
+
+### Frontend Environment Variable
+
+Set this on the frontend host:
+
+- `VITE_API_BASE_URL=<your deployed backend URL>/api`
+
+Example:
+
+- `VITE_API_BASE_URL=https://your-backend-name.onrender.com/api`
+
+### Important Notes
+
+- Do not use local MongoDB for deployment. Use MongoDB Atlas or another hosted MongoDB service.
+- If Ollama is not deployed, the app still works with its grounded fallback answer path, but the full local-model reasoning path will not be active.
+- The backend now supports one primary frontend URL plus optional extra allowed origins for preview or staging deployments.
+
+### Beginner-Friendly Deployment Order
+
+1. Deploy the backend first.
+2. Add backend environment variables.
+3. Confirm the backend is reachable.
+4. Deploy the frontend.
+5. Add `VITE_API_BASE_URL` to the frontend host.
+6. Open the deployed app and run a few searches.
