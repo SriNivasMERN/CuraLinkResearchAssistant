@@ -2,35 +2,35 @@ import httpClient from "../integrations/httpClient.js";
 import { buildResearchAnswerPrompt } from "../../prompts/researchAnswer.prompt.js";
 
 function buildFallbackAnswer({ query, disease, intent, publications, trials }) {
-  const topPublicationTitles = publications.slice(0, 3).map((item) => item.title);
-  const topTrialTitles = trials.slice(0, 2).map((item) => item.title);
+  const topPublications = publications.slice(0, 3);
+  const topTrials = trials.slice(0, 2);
 
   return {
     conditionOverview: disease
-      ? `${disease} is the active research context for this search. The current results combine publication evidence and trial data related to the user's request.`
-      : `This search focuses on the query "${query}" and summarizes the strongest retrieved medical research evidence.`,
+      ? `${disease} is the active research context for this search. The ranked evidence combines publications and clinical trials aligned to the user's request. Evidence strength depends on the retrieved source set and should be reviewed directly.`
+      : `This search focuses on "${query}" and summarizes the strongest retrieved medical research evidence from publications and clinical trials.`,
     personalizedContext: intent
-      ? `The answer is prioritized around the user's intent: ${intent}.`
-      : "The answer is based on the current query and the strongest retrieved evidence.",
+      ? `The evidence was prioritized around the user's intent: ${intent}. This keeps the answer centered on the treatment or research focus most relevant to the request.`
+      : "The answer is based on the current query and the strongest retrieved evidence available in this run.",
     researchInsights: [
-      topPublicationTitles[0]
-        ? `The highest-ranked publication is "${topPublicationTitles[0]}", which was selected because it best matched the disease and intent context.`
+      topPublications[0]
+        ? `"${topPublications[0].title}" is the highest-ranked publication and strongly matches the disease and intent context for this search.`
         : "No strong publication evidence was available for this query.",
-      topPublicationTitles[1]
-        ? `Additional publication support includes "${topPublicationTitles[1]}", helping provide broader evidence coverage.`
+      topPublications[1]
+        ? `"${topPublications[1].title}" adds additional publication support and broadens the evidence base beyond the top paper.`
         : "Publication coverage is limited, so conclusions should be treated cautiously.",
-      topPublicationTitles[2]
-        ? `A further supporting source is "${topPublicationTitles[2]}", which adds depth to the retrieved evidence set.`
-        : "The result set should be expanded further in later iterations for deeper research breadth.",
+      topPublications[2]
+        ? `"${topPublications[2].title}" offers further support and helps strengthen depth across the retrieved publication set.`
+        : "The publication set is narrower than ideal and would benefit from deeper retrieval expansion.",
     ].filter(Boolean),
-    clinicalTrials: topTrialTitles.length
-      ? topTrialTitles.map(
-          (title) =>
-            `Relevant clinical trial evidence includes "${title}", which may be useful for eligibility and recruiting-status review.`
+    clinicalTrials: topTrials.length
+      ? topTrials.map(
+          (item) =>
+            `"${item.title}" is a relevant clinical-trial match${item.metadata?.status ? ` with status ${item.metadata.status}` : ""} and should be reviewed for eligibility, recruiting context, and location fit.`
         )
       : ["No strong clinical trial match was identified in the ranked set for this query."],
     limitations:
-      "This answer was produced from retrieved evidence only. It does not replace clinical advice, and some sources may require deeper manual review for full context.",
+      "This answer was produced from retrieved evidence only. It does not replace clinical advice, may miss relevant studies outside the current retrieval window, and should be validated by reviewing the cited sources directly.",
     generationMode: "fallback",
   };
 }
@@ -91,4 +91,3 @@ export async function generateStructuredAnswer({
     };
   }
 }
-

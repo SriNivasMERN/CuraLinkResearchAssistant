@@ -2,6 +2,7 @@ export function normalizeOpenAlexWork(work) {
   const authors =
     work.authorships?.map((authorship) => authorship.author?.display_name).filter(Boolean) || [];
   const abstract = buildOpenAlexAbstract(work.abstract_inverted_index);
+  const supportingSnippet = abstract.slice(0, 260).trim();
 
   return {
     id: work.id || `openalex-${work.ids?.openalex || Math.random().toString(36).slice(2)}`,
@@ -14,6 +15,7 @@ export function normalizeOpenAlexWork(work) {
     url: work.primary_location?.landing_page_url || work.id || "",
     metadata: {
       citedByCount: work.cited_by_count || 0,
+      supportingSnippet,
     },
   };
 }
@@ -53,6 +55,7 @@ export function normalizePubMedRecord(record) {
     record?.MedlineCitation?.[0]?.DateCompleted?.[0]?.Year?.[0] ||
     null;
   const pmid = record?.MedlineCitation?.[0]?.PMID?.[0]?._ || record?.MedlineCitation?.[0]?.PMID?.[0];
+  const supportingSnippet = abstract.slice(0, 260).trim();
 
   return {
     id: `pubmed-${pmid || Math.random().toString(36).slice(2)}`,
@@ -65,6 +68,7 @@ export function normalizePubMedRecord(record) {
     url: pmid ? `https://pubmed.ncbi.nlm.nih.gov/${pmid}/` : "",
     metadata: {
       pmid: pmid || "",
+      supportingSnippet,
     },
   };
 }
@@ -74,14 +78,22 @@ export function normalizeClinicalTrial(study) {
   const identificationModule = protocolSection.identificationModule || {};
   const statusModule = protocolSection.statusModule || {};
   const eligibilityModule = protocolSection.eligibilityModule || {};
+  const descriptionModule = protocolSection.descriptionModule || {};
   const contactsLocationsModule = protocolSection.contactsLocationsModule || {};
   const firstLocation = contactsLocationsModule.locations?.[0];
+  const eligibilityCriteria = eligibilityModule.eligibilityCriteria || "";
+  const briefSummary = descriptionModule.briefSummary || "";
+  const supportingSnippet = (briefSummary || eligibilityCriteria).slice(0, 260).trim();
 
   return {
     id: study.protocolSection?.identificationModule?.nctId || Math.random().toString(36).slice(2),
     type: "trial",
     title: identificationModule.briefTitle || "Untitled clinical trial",
-    summary: eligibilityModule.eligibilityCriteria || study.derivedSection?.miscInfoModule?.versionHolder || "",
+    summary:
+      briefSummary
+      || eligibilityCriteria
+      || study.derivedSection?.miscInfoModule?.versionHolder
+      || "",
     authors: [],
     year: null,
     platform: "ClinicalTrials.gov",
@@ -89,11 +101,14 @@ export function normalizeClinicalTrial(study) {
       ? `https://clinicaltrials.gov/study/${identificationModule.nctId}`
       : "https://clinicaltrials.gov/",
     metadata: {
+      nctId: identificationModule.nctId || "",
       status: statusModule.overallStatus || "",
+      eligibilityCriteria,
       location: firstLocation
         ? [firstLocation.city, firstLocation.state, firstLocation.country].filter(Boolean).join(", ")
         : "",
       contact: contactsLocationsModule.centralContactList?.centralContacts?.[0]?.name || "",
+      supportingSnippet,
     },
   };
 }

@@ -10,4 +10,8 @@ export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   ollamaBaseUrl: process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434",
   ollamaModel: process.env.OLLAMA_MODEL || "llama3.1:8b",
+  openAlexPerPage: Number(process.env.OPENALEX_PER_PAGE || 60),
+  pubmedRetmax: Number(process.env.PUBMED_RETMAX || 60),
+  trialsPageSize: Number(process.env.CLINICAL_TRIALS_PAGE_SIZE || 40),
+  publicationQueryCount: Number(process.env.PUBLICATION_QUERY_COUNT || 3),
 };

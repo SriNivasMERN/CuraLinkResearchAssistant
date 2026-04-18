@@ -2,14 +2,14 @@ import { parseStringPromise } from "xml2js";
 import httpClient from "./httpClient.js";
 import { normalizePubMedRecord } from "../../utils/sourceNormalizer.js";
 
-async function searchPubMedIds(query) {
+async function searchPubMedIds(query, retmax = 40) {
   const response = await httpClient.get(
     "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
     {
       params: {
         db: "pubmed",
         term: query,
-        retmax: 10,
+        retmax,
         sort: "pub+date",
         retmode: "json",
       },
@@ -39,13 +39,12 @@ async function fetchPubMedDetails(ids) {
   return parsed?.PubmedArticleSet?.PubmedArticle || [];
 }
 
-export async function searchPubMed(query) {
+export async function searchPubMed(query, options = {}) {
   if (!query) {
     return [];
   }
 
-  const ids = await searchPubMedIds(query);
+  const ids = await searchPubMedIds(query, options.retmax || 40);
   const records = await fetchPubMedDetails(ids);
   return records.map(normalizePubMedRecord);
 }
-

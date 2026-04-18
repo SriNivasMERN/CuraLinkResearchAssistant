@@ -5,7 +5,7 @@ export function buildResearchAnswerPrompt({ query, disease, intent, publications
       (item, index) =>
         `${index + 1}. ${item.title} | ${item.platform} | ${item.year || "Year unavailable"} | Score ${
           item.relevanceScore
-        }\nSummary: ${item.summary || "No summary available."}`
+        }\nAuthors: ${item.authors?.join(", ") || "Unknown"}\nSummary: ${item.summary || "No summary available."}`
     )
     .join("\n\n");
 
@@ -17,7 +17,7 @@ export function buildResearchAnswerPrompt({ query, disease, intent, publications
           item.relevanceScore
         }\nSummary: ${item.summary || "No trial summary available."}\nLocation: ${
           item.metadata?.location || "Location unavailable"
-        }`
+        }\nEligibility: ${item.metadata?.eligibilityCriteria || "Eligibility unavailable"}`
     )
     .join("\n\n");
 
@@ -26,6 +26,7 @@ You are generating a grounded medical research summary.
 Use only the evidence provided below.
 Do not invent facts, treatments, or trial details.
 If evidence is limited, explicitly say that evidence is limited.
+Write compact, evidence-led outputs.
 
 User query: ${query}
 Disease context: ${disease || "Not clearly specified"}
@@ -47,4 +48,3 @@ Evidence pack - Clinical Trials:
 ${serializedTrials || "No clinical trial evidence available."}
   `.trim();
 }
-
